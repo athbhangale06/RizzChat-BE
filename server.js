@@ -73,4 +73,22 @@ io.on("connection", (socket) => {
   });
 });
 
+let activeUsers = new Set(); // Using a Set prevents duplicate usernames
+
+io.on("connection", (socket) => {
+  // When a user logs in and sends their username
+  socket.on("join", (username) => {
+    socket.username = username;
+    activeUsers.add(username);
+    // Broadcast the updated list to EVERYONE
+    io.emit("updateUserList", Array.from(activeUsers));
+  });
+
+  // When a user closes the tab or logs out
+  socket.on("disconnect", () => {
+    activeUsers.delete(socket.username);
+    io.emit("updateUserList", Array.from(activeUsers));
+  });
+});
+
 httpServer.listen(3000, () => console.log("Server is alive at 3000"));
